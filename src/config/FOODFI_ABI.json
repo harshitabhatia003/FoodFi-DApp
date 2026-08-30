@@ -1,0 +1,148 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_foodTokenAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "participant",
+        "type": "address"
+      }
+    ],
+    "name": "getParticipantStats",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "foodSavedKg",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rewardsEarned",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "participationCount",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct FoodFi.ParticipantStats",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "foodToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "participantStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "foodSavedKg",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "rewardsEarned",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participationCount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rewardRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "participant",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "foodSavedKg",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordFoodSaving",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_rate",
+        "type": "uint256"
+      }
+    ],
+    "name": "setRewardRate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "depositRewards",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
