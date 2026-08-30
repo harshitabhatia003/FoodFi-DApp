@@ -13,6 +13,7 @@ function App() {
     recordFoodSaving,
     transactionInProgress,
     error,
+    connectWallet,
   } = useWeb3();
 
   const [foodKgInput, setFoodKgInput] = useState("");
@@ -79,8 +80,8 @@ function App() {
 
             <div className="hero-actions">
               {!isConnected && (
-                <button className="primary-btn">
-                  Click Wallet to Connect
+                <button className="primary-btn" onClick={connectWallet}>
+                  🔗 Connect Wallet
                 </button>
               )}
 
