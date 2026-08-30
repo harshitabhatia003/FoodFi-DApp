@@ -5,7 +5,7 @@
 // Usage: Wrap your App component with <Web3Provider>
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as blockchainService from '../blockchain/blockchain.js';
+import * as blockchainService from "../../blockchain/blockchain.js";
 
 // Create context
 const Web3Context = createContext(null);
