@@ -1,86 +1,206 @@
-// ============================================
-// FOODFI DAPP - MAIN APPLICATION
-// ============================================
-// Integrated with Web3 (MetaMask + Ganache + Smart Contracts)
-//
-// IMPORTANT SETUP STEPS:
-// 1. Update src/config/contracts.js with your contract addresses
-// 2. Make sure your contract ABIs are in src/config/
-// 3. Ganache must be running on http://127.0.0.1:8545
-// 4. MetaMask must be connected to Ganache network
+import { useState, useEffect } from "react";
+import { useWeb3 } from "./components/Web3";
+import { WalletButton } from "./components/Web3";
+import "./App.css";
 
-import { Web3Provider, WalletButton, FoodFiDashboard } from './components/Web3';
-import './App.css';
+function App() {
+  const {
+    isConnected,
+    account,
+    balance,
+    foodBalance,
+    participantStats,
+    recordFoodSaving,
+    transactionInProgress,
+    error,
+  } = useWeb3();
 
-function AppContent() {
-  // All Web3 logic is now handled by Web3Provider and components
-  // This keeps App.jsx clean and focused on UI layout
+  const [foodKgInput, setFoodKgInput] = useState("");
+  const [status, setStatus] = useState("Connect your wallet to begin.");
+  const [isRecording, setIsRecording] = useState(false);
+
+  // Format address for display
+  const formatAddress = (addr) => {
+    if (!addr) return "";
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  };
+
+  // Handle record food saving
+  async function handleRecordFoodSaving() {
+    if (!foodKgInput || isNaN(foodKgInput) || foodKgInput <= 0) {
+      setStatus("Please enter a valid amount (> 0 kg)");
+      return;
+    }
+
+    try {
+      setIsRecording(true);
+      setStatus("Recording food saving...");
+
+      const result = await recordFoodSaving(parseFloat(foodKgInput));
+
+      setStatus(`✅ Food saving recorded! Transaction: ${result.hash.substring(0, 10)}...`);
+      setFoodKgInput("");
+
+      setTimeout(() => {
+        setStatus("Connect your wallet to begin.");
+      }, 5000);
+    } catch (err) {
+      setStatus(`❌ Error: ${err.message}`);
+    } finally {
+      setIsRecording(false);
+    }
+  }
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>🍕 FoodFi - Decentralized Food Saving DApp</h1>
-        <div className="header-controls">
-          <WalletButton />
+    <div className="app">
+      <nav className="navbar">
+        <div className="brand">
+          <span className="logo">🍽️</span>
+          <span>FoodFi</span>
         </div>
-      </header>
 
-      <main className="app-main">
+        <WalletButton />
+      </nav>
+
+      <main className="container">
         <section className="hero">
-          <h2>Welcome to FoodFi</h2>
-          <p>
-            A blockchain-based platform to record food savings and earn rewards.
-          </p>
+          <div>
+            <div className="badge">🌱 DECENTRALIZED FOOD REWARDS</div>
+
+            <h1>
+              Turn food saving into
+              <span> rewards.</span>
+            </h1>
+
+            <p>
+              FoodFi is a decentralized platform that rewards users for
+              participating in food-waste reduction initiatives.
+            </p>
+
+            <div className="hero-actions">
+              {!isConnected && (
+                <button className="primary-btn">
+                  Click Wallet to Connect
+                </button>
+              )}
+
+              {isConnected && (
+                <>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleRecordFoodSaving();
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={foodKgInput}
+                        onChange={(e) => setFoodKgInput(e.target.value)}
+                        placeholder="Enter amount in kg"
+                        disabled={isRecording}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: "2px solid #e0e0e0",
+                          fontSize: "14px",
+                          fontFamily: "inherit",
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={isRecording || !foodKgInput}
+                        className="primary-btn"
+                        style={{ minWidth: "150px" }}
+                      >
+                        {isRecording ? "⏳ Recording..." : "📝 Record Food"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="hero-card">
+            <div className="food-icon">🍃</div>
+            <h3>Save Food</h3>
+            <p>Reduce waste. Earn FOOD tokens.</p>
+          </div>
         </section>
 
-        <FoodFiDashboard />
+        {isConnected && (
+          <>
+            <section className="wallet-section">
+              <div className="wallet-title">
+                <span className="online-dot"></span>
+                Connected Wallet
+              </div>
+
+              <div className="wallet-address">
+                {account}
+              </div>
+            </section>
+
+            <section className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">🪙</div>
+                <div>
+                  <p>FOOD Balance</p>
+                  <h2>{parseFloat(foodBalance || "0").toFixed(2)}</h2>
+                  <span>FOOD Tokens</span>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-icon">🥗</div>
+                <div>
+                  <p>Food Saved</p>
+                  <h2>{participantStats?.foodSavedKg || "0"}</h2>
+                  <span>Kilograms</span>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-icon">🏆</div>
+                <div>
+                  <p>Rewards Earned</p>
+                  <h2>{parseFloat(participantStats?.rewardsEarned || "0").toFixed(2)}</h2>
+                  <span>FOOD Tokens</span>
+                </div>
+              </div>
+            </section>
+
+            <section className="initiative">
+              <div className="initiative-icon">🌎</div>
+
+              <div>
+                <h2>Every kilogram matters.</h2>
+                <p>
+                  FoodFi simulates food-waste verification and rewards
+                  participants with FOOD tokens through a blockchain
+                  smart contract.
+                </p>
+              </div>
+            </section>
+          </>
+        )}
+
+        <div className="status">
+          <span className="status-dot"></span>
+          {status}
+        </div>
       </main>
 
-      <footer className="app-footer">
-        <p>
-          🔗 Running on Ganache (Chain ID: 1337) | Powered by React + Ethers.js +
-          MetaMask
-        </p>
+      <footer>
+        <p>FoodFi • Decentralized Food-Waste Reduction Rewards Platform</p>
+        <span>Powered by Ethereum • Solidity • Ethers.js</span>
       </footer>
     </div>
   );
 }
 
-function App() {
-  return (
-    // Wrap entire app with Web3Provider to provide blockchain context
-    <Web3Provider>
-      <AppContent />
-    </Web3Provider>
-  );
-}
-
 export default App;
-
-/*
-  ============================================
-  TROUBLESHOOTING GUIDE
-  ============================================
-
-  ❌ "MetaMask not detected"
-    → Make sure MetaMask extension is installed
-
-  ❌ "Contract addresses not set"
-    → Edit src/config/contracts.js and replace placeholders with your actual addresses
-
-  ❌ "Wrong network"
-    → Switch to "Ganache Local" network in MetaMask
-    → Make sure Ganache is running on http://127.0.0.1:8545
-
-  ❌ "Transaction failed"
-    → Check Ganache console for errors
-    → Verify contract addresses and ABIs are correct
-    → Make sure account has ETH for gas fees
-
-  ❌ "Can't connect wallet"
-    → Reload the page
-    → Disconnect and reconnect MetaMask
-    → Check browser console for errors
-
-  For more info, see docs/BLOCKCHAIN_SETUP.md
-*/
