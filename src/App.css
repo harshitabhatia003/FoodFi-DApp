@@ -32,7 +32,6 @@ button {
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, #ffffff 0%, #f8fdf9 100%);
-  border-bottom: 2px solid rgba(66, 168, 95, 0.1);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
@@ -191,7 +190,6 @@ button {
   justify-content: center;
   text-align: center;
   box-shadow: 0 10px 40px rgba(66, 168, 95, 0.15);
-  border: 2px solid rgba(66, 168, 95, 0.2);
 }
 
 .food-icon {
@@ -228,7 +226,6 @@ button {
   padding: 24px 30px;
   border-radius: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fdf9 100%);
-  border: 2px solid rgba(66, 168, 95, 0.15);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
@@ -271,7 +268,6 @@ button {
 .stat-card {
   padding: 32px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fdf9 100%);
-  border: 2px solid rgba(66, 168, 95, 0.1);
   border-radius: 18px;
   display: flex;
   align-items: center;
@@ -329,7 +325,6 @@ button {
   gap: 30px;
   align-items: center;
   box-shadow: 0 10px 40px rgba(26, 124, 58, 0.25);
-  border: 2px solid rgba(66, 168, 95, 0.3);
 }
 
 .initiative-icon {
@@ -355,7 +350,6 @@ button {
   padding: 16px 20px;
   border-radius: 12px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fdf9 100%);
-  border: 2px solid rgba(66, 168, 95, 0.15);
   color: #5a6d5f;
   font-size: 14px;
   font-weight: 500;
@@ -371,7 +365,6 @@ footer {
   justify-content: space-between;
   gap: 20px;
   font-size: 13px;
-  border-top: 2px solid rgba(66, 168, 95, 0.15);
 }
 
 footer p {
@@ -387,7 +380,7 @@ footer span {
 /* Input Styling */
 input[type="number"] {
   background: white;
-  border: 2px solid rgba(66, 168, 95, 0.2);
+  border: 1px solid #e0e0e0;
   color: #17221a;
   font-weight: 500;
   transition: all 0.3s ease;
