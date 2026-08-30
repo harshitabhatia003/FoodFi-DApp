@@ -11,7 +11,7 @@
 
 import { Web3Provider, WalletButton, FoodFiDashboard } from './components/Web3';
 import './App.css';
-import * as blockchainService from "../blockchain/blockchain.js";
+
 function AppContent() {
   // All Web3 logic is now handled by Web3Provider and components
   // This keeps App.jsx clean and focused on UI layout
