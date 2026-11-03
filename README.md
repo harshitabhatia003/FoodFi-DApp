@@ -1,4 +1,4 @@
-<img width="943" height="409" alt="image" src="https://github.com/user-attachments/assets/7ef78171-5dc5-496c-b973-9e9a27227fa1" /><img width="947" height="406" alt="image" src="https://github.com/user-attachments/assets/7bd7efa1-d750-4ae5-b161-5f02ba22a9b3" /># FoodFi DApp
+# FoodFi DApp
 
 FoodFi is a React/Vite Web3 demo for food orders, FOOD rewards, a token vault, liquidity, yield farming, and token swaps. Solidity sources for the six experiments are maintained in `contracts/active/Experiment1` through `Experiment6`; the original contract files under `contracts/contracts` are preserved as reference material and are not compiled by Hardhat.
 
@@ -11,6 +11,7 @@ FoodFi is a React/Vite Web3 demo for food orders, FOOD rewards, a token vault, l
 <img width="931" height="485" alt="image" src="https://github.com/user-attachments/assets/0190cbdf-1f40-4fd5-ac5c-910b669a19a1" />
 <img width="921" height="412" alt="image" src="https://github.com/user-attachments/assets/677a76d3-46db-4578-837b-26dfdd0cb5da" />
 <img width="947" height="498" alt="image" src="https://github.com/user-attachments/assets/a09b7ddb-98fe-4b62-986a-ad94a867feda" />
+
 
 
 
