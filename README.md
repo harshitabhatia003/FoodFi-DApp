@@ -4,6 +4,15 @@ FoodFi is a React/Vite Web3 demo for food orders, FOOD rewards, a token vault, l
 
 ## UI preview
 
+<img width="944" height="496" alt="image" src="https://github.com/user-attachments/assets/40c22afb-5c4f-4769-a93f-e4e6a00fdd53" />
+<img width="907" height="418" alt="image" src="https://github.com/user-attachments/assets/31d99c55-3ab6-4c9c-a57b-3fa343b54129" />
+<img width="947" height="406" alt="image" src="https://github.com/user-attachments/assets/42bf2505-55ca-4eef-84aa-b7aca752a342" />
+<img width="943" height="409" alt="image" src="https://github.com/user-attachments/assets/fe37775a-d57e-4af8-afc8-e02c95eaae3f" />
+<img width="931" height="485" alt="image" src="https://github.com/user-attachments/assets/0190cbdf-1f40-4fd5-ac5c-910b669a19a1" />
+<img width="921" height="412" alt="image" src="https://github.com/user-attachments/assets/677a76d3-46db-4578-837b-26dfdd0cb5da" />
+<img width="947" height="498" alt="image" src="https://github.com/user-attachments/assets/a09b7ddb-98fe-4b62-986a-ad94a867feda" />
+
+
 
 
 The screenshot shows the app before a wallet is connected. Menu browsing and basket controls are available immediately; on-chain actions require an injected wallet connected to the chain where FoodFi is deployed.
