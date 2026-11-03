@@ -1,0 +1,49 @@
+{
+  "chainId": 1337,
+  "networkName": "localhost",
+  "deployer": "0x143273E01FdFa120DC961424b4bd3dea8954A15A",
+  "deploymentBlock": 32,
+  "contracts": {
+    "foodToken": "0x735A8CD847078ef4370748EE6C00ee36F49e189e",
+    "foodRewards": "0xb2DEf691159dd58BE4B8990F5Eb7D5336b6f0cCC",
+    "orders": "0x9408280b07773D5F4dF553b77A84d7D7CAb44D31",
+    "vault": "0x998F16E95E1584a5b6A3c9C6cE0A903542Dc3D0A",
+    "ammUsd": "0xcB5A66c99f6fC6fbC2B46803a25d68Ae9b7CFEA0",
+    "ammLpToken": "0x1282796AF710Ed19Cb86e9691dB7F0f387b257c2",
+    "liquidityPool": "0x362FaA92160B96Bb1e2541798774F1a67aAFB94f",
+    "dexUsd": "0x8082512EcE7c683E7DBfE1F272091E13681EEFB4",
+    "factory": "0x4ce4F3A47cbcdEFDEeCB90879A965636aab5CEa0",
+    "router": "0x971fcAE00dC49E12A797B0030b0a280d0F952876",
+    "dexPair": "0x2b90B037eD263f0558c367dc83D42580E498Ef7D",
+    "foodBridgePair": "0x0897aBb71637a23597DBE6bd62fFA91CE1dAFA1f",
+    "bridgeUsdPair": "0x44b32552549938e3A7fcb2B213e964997CF006f9",
+    "dexBridge": "0xaF6c9577a2FCc7E6c772ED34dFc42cDFD3822c39",
+    "farm": "0xFfd7004870e6e7BF8A68CFBCD1eb1f467AA08644"
+  },
+  "tokens": [
+    {
+      "address": "0x735A8CD847078ef4370748EE6C00ee36F49e189e",
+      "name": "FoodFi Token",
+      "symbol": "FOOD",
+      "decimals": 18
+    },
+    {
+      "address": "0x8082512EcE7c683E7DBfE1F272091E13681EEFB4",
+      "name": "FoodFi DEX USD",
+      "symbol": "FUSD",
+      "decimals": 18
+    },
+    {
+      "address": "0xaF6c9577a2FCc7E6c772ED34dFc42cDFD3822c39",
+      "name": "FoodFi Bridge Token",
+      "symbol": "FBRG",
+      "decimals": 18
+    },
+    {
+      "address": "0xcB5A66c99f6fC6fbC2B46803a25d68Ae9b7CFEA0",
+      "name": "FoodFi AMM USD",
+      "symbol": "AMM-USD",
+      "decimals": 18
+    }
+  ]
+}

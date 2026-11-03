@@ -1,124 +1,98 @@
-# FoodFi DApp 🍕
+# FoodFi DApp
 
-A decentralized food delivery application built with React and Vite, enabling blockchain-based food ordering and payments.
-
-## Overview
-
-FoodFi is a modern decentralized application (DApp) that revolutionizes the food delivery experience by integrating blockchain technology. Users can order food directly from restaurants, make transparent payments using cryptocurrency, and earn rewards through a token-based system.
+FoodFi is a React/Vite Web3 demo for food orders, FOOD rewards, a token vault, liquidity, yield farming, and token swaps. Solidity sources for the six experiments are maintained in `contracts/active/Experiment1` through `Experiment6`; the original contract files under `contracts/contracts` are preserved as reference material and are not compiled by Hardhat.
 
 ## Features
 
-- 🚀 **Fast & Modern UI** - Built with React + Vite for lightning-fast performance
-- 🔐 **Blockchain Integration** - Secure transactions using Web3
-- 💰 **Cryptocurrency Payments** - Direct wallet-to-merchant transactions
-- 🎁 **Reward System** - Earn tokens with every order
-- 📱 **Responsive Design** - Works seamlessly on desktop and mobile
-- ⚡ **HMR Support** - Hot Module Replacement for fast development
-- 🎯 **ESLint Configured** - Code quality maintained with ESLint rules
+- Connect an injected EVM wallet, inspect balances and transactions, and switch to the configured chain.
+- Place demo food orders with native currency and review on-chain order events.
+- Record food-saving activity and receive FOOD rewards from the funded reward pool.
+- Deposit and withdraw FOOD from an ERC-4626 vault.
+- Add/remove liquidity and swap tokens through the Experiment 6 DEX.
+- Stake and unstake DEX LP tokens in the yield farm.
 
-## Tech Stack
+The menu and its ETH prices are sample data, not a live restaurant catalog or quote. This project does not submit orders to a restaurant or provide delivery tracking.
 
-- **Frontend Framework**: React 18+
-- **Build Tool**: Vite
-- **Styling**: CSS3 with modern features
-- **Web3 Integration**: Ready for blockchain integration
-- **Code Quality**: ESLint
+## Requirements
 
-## Getting Started
+- Node.js 20.19+ or 22.12+
+- npm
+- MetaMask or another injected EVM wallet for interactive frontend use
 
-### Prerequisites
+Install dependencies:
 
-- Node.js 16.x or higher
-- npm or yarn package manager
+```sh
+npm install
+```
 
-### Installation
+## Run locally
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/foodfi-dapp.git
-   cd foodfi-dapp
-   ```
+Compile the contracts and export the frontend ABIs:
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```sh
+npm run contracts:compile
+```
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+If you use Ganache, start it on port `7545` with chain ID `1337`. Do not also start the Hardhat node below; only one process can own the port. If you prefer the bundled Hardhat node, start it instead:
 
-   The application will open at `http://localhost:5173`
+```sh
+npm run node:local
+```
 
-### Build for Production
+With either local network running, deploy the contracts to that RPC and seed demo liquidity:
 
-```bash
+```sh
+npm run deploy:local
+```
+
+Then start the frontend:
+
+```sh
+npm run dev
+```
+
+Open the Vite URL (normally `http://localhost:5173`) and connect a wallet configured for the local network:
+
+- Network name: Hardhat Local
+- RPC URL: `http://127.0.0.1:7545`
+- Chain ID: `1337` (`0x539`)
+- Currency: `ETH`
+
+Use only a development account/private key printed by the local Hardhat node, and never use it on a public network. Local node state is ephemeral; restart the node and redeploy after it is stopped. The deployment script writes addresses to `deployments/<chainId>.json` and `src/config/deployment.json`. It refuses to overwrite an existing live deployment unless `REDEPLOY=true` is explicitly set.
+
+## Deploy to Sepolia
+
+Copy `.env.example` to `.env`, then set `SEPOLIA_RPC_URL` and `PRIVATE_KEY` to a Sepolia RPC endpoint and a dedicated, funded test wallet. Keep `.env` private and never use a wallet containing real funds.
+
+```sh
+npm run deploy:sepolia
+```
+
+The deployment script deploys and seeds demo liquidity, then updates the deployment JSON files. Review the generated addresses and configure the wallet to use Sepolia (chain ID `11155111`). No public network deployment is included with this repository.
+
+## Tests and checks
+
+```sh
+npm run contracts:test
+npm run lint
 npm run build
 ```
 
-This creates an optimized production build in the `dist` directory.
+The contract suite covers all six experiments, including the ten Experiment 6 DEX scenarios. The Experiment 6 brief's scenario 8 does not specify pool reserves, so its test uses A/B reserves of 1,000/4,000 and B/C reserves of 30,000/1,800, producing 21 C for the tested route.
 
-### Preview Production Build
+## Project layout
 
-```bash
-npm run preview
+```text
+contracts/active/       Hardhat Solidity sources for Experiments 1-6
+contracts/contracts/    Preserved original contract sources
+scripts/                Deployment and ABI export scripts
+test/                   Hardhat contract tests
+src/blockchain/         Ethers wallet/provider and contract utilities
+src/components/Web3/    Wallet context and controls
+src/config/             Deployment addresses and generated ABIs
+src/App.jsx             FoodFi application interface
 ```
 
-## Project Structure
+## Scope and safety
 
-```
-foodfi-dapp/
-├── src/
-│   ├── components/          # React components
-│   ├── pages/              # Page components
-│   ├── assets/             # Images, SVGs, and static files
-│   ├── App.jsx             # Main App component
-│   ├── App.css             # Global styles
-│   ├── index.css           # Base styles
-│   └── main.jsx            # React entry point
-├── public/                 # Static public assets
-├── index.html              # HTML template
-├── vite.config.js          # Vite configuration
-├── eslint.config.js        # ESLint rules
-├── package.json            # Dependencies and scripts
-└── README.md               # This file
-```
-
-## Available Scripts
-
-- `npm run dev` - Start development server with HMR
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run lint` - Run ESLint to check code quality
-
-## Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Roadmap
-
-- [ ] Web3 wallet integration
-- [ ] Smart contract deployment
-- [ ] Restaurant onboarding flow
-- [ ] Order tracking system
-- [ ] Reward token mechanism
-- [ ] Multi-chain support
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For issues, questions, or feature requests, please open an issue on GitHub.
-
----
-
-**Built with ❤️ for the decentralized food delivery revolution**
+This is an educational/demo application, not an audited financial product. The included mock tokens have no real-world value; reward payouts and some token operations are owner-controlled. The sample menu is not connected to a restaurant, and order events are not proof of fulfillment. Do not use production funds or deploy these contracts for real users without an independent security review, operational controls, and a production-ready deployment plan.

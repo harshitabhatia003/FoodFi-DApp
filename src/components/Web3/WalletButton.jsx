@@ -5,8 +5,7 @@
 // Shows account address when connected
 // Handles MetaMask popup and errors
 
-import React from 'react';
-import { useWeb3 } from './Web3Provider';
+import { useWeb3 } from './useWeb3';
 import styles from './Web3.module.css';
 
 export function WalletButton() {
@@ -15,9 +14,13 @@ export function WalletButton() {
     account,
     loading,
     isGanache,
-    error,
+    isCorrectNetwork,
+    networkName,
+    chainId,
     connectWallet,
+    switchNetwork,
     disconnectWallet,
+    error,
   } = useWeb3();
 
   // Format address to shorter version
@@ -27,27 +30,35 @@ export function WalletButton() {
   };
 
   // If error with network, show warning
-  if (error && !isGanache && isConnected) {
+  if (isConnected && !isCorrectNetwork) {
     return (
-      <button
-        onClick={connectWallet}
-        className={`${styles.walletBtn} ${styles.error}`}
-      >
-        ❌ Wrong Network - Click to Fix
-      </button>
+      <div className={styles.connectedContainer}>
+        <span className={styles.address}>
+          Wrong network ({networkName || `chain ${chainId}`})
+        </span>
+        <button
+          onClick={() => void switchNetwork().catch(() => {})}
+          className={`${styles.walletBtn} ${styles.error}`}
+        >
+          Switch Network
+        </button>
+      </div>
     );
   }
 
   // Not connected
   if (!isConnected) {
     return (
-      <button
-        onClick={connectWallet}
-        disabled={loading}
-        className={`${styles.walletBtn} ${styles.connect}`}
-      >
-        {loading ? '⏳ Connecting...' : '🔗 Connect Wallet'}
-      </button>
+      <div className={styles.connectGroup}>
+        <button
+          onClick={() => void connectWallet().catch(() => {})}
+          disabled={loading}
+          className={`${styles.walletBtn} ${styles.connect}`}
+        >
+          {loading ? '⏳ Connecting...' : '🔗 Connect Wallet'}
+        </button>
+        {error && <span className={styles.connectionError} role="alert">{error}</span>}
+      </div>
     );
   }
 
@@ -57,7 +68,7 @@ export function WalletButton() {
       <div className={styles.connectedInfo}>
         <span className={styles.status}>✅ Connected</span>
         <span className={styles.address}>{formatAddress(account)}</span>
-        {isGanache && <span className={styles.network}>🔗 Ganache</span>}
+        {isGanache && <span className={styles.network}>🔗 {networkName || `Chain ${chainId}`}</span>}
       </div>
       <button onClick={disconnectWallet} className={`${styles.walletBtn} ${styles.disconnect}`}>
         Disconnect

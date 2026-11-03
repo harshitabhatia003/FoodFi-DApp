@@ -45,6 +45,20 @@
   cursor: not-allowed;
 }
 
+.connectGroup {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.connectionError {
+  max-width: 320px;
+  color: #a93226;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+}
+
 /* Connected Container */
 .connectedContainer {
   display: flex;
@@ -304,6 +318,15 @@
 
   .walletBtn {
     width: 100%;
+  }
+
+  .connectGroup {
+    width: 100%;
+  }
+
+  .connectionError {
+    max-width: none;
+    text-align: left;
   }
 
   .primaryBtn {

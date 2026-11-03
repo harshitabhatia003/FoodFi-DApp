@@ -6,8 +6,8 @@
 // Records food saving transactions
 // Displays participant statistics
 
-import React, { useState } from 'react';
-import { useWeb3 } from './Web3Provider';
+import { useState } from 'react';
+import { useWeb3 } from './useWeb3';
 import styles from './Web3.module.css';
 
 export function FoodFiDashboard() {
@@ -20,8 +20,7 @@ export function FoodFiDashboard() {
     transactionInProgress,
     error,
     participantStats,
-    recordFoodSaving,
-    getStats,
+    writeContract,
     refreshBalances,
   } = useWeb3();
 
@@ -41,12 +40,15 @@ export function FoodFiDashboard() {
     setTxSuccess(null);
 
     try {
-      if (!foodKgInput || isNaN(foodKgInput) || foodKgInput <= 0) {
-        setTxError('Please enter a valid amount (> 0)');
+      if (!/^[1-9]\d*$/.test(foodKgInput)) {
+        setTxError('Please enter a whole number of kilograms greater than zero.');
         return;
       }
 
-      const result = await recordFoodSaving(parseFloat(foodKgInput));
+      const result = await writeContract('foodRewards', 'recordFoodSaving', [
+        account,
+        BigInt(foodKgInput),
+      ]);
       
       setTxSuccess(
         `✅ Food saving recorded!\nTransaction: ${result.hash}`
@@ -54,9 +56,7 @@ export function FoodFiDashboard() {
       setFoodKgInput('');
 
       // Refresh stats
-      setTimeout(() => {
-        getStats();
-      }, 500);
+      await refreshBalances(account);
     } catch (err) {
       setTxError(`❌ Error: ${err.message}`);
     }
@@ -69,7 +69,7 @@ export function FoodFiDashboard() {
   async function handleRefreshStats() {
     try {
       setLoadingStats(true);
-      await getStats();
+      await refreshBalances(account);
       setTxSuccess('✅ Stats refreshed');
     } catch (err) {
       setTxError(`Error: ${err.message}`);

@@ -7,22 +7,33 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "contracts:compile": "hardhat --config hardhat.config.cjs compile && hardhat --config hardhat.config.cjs run scripts/export-abis.cjs",
+    "contracts:test": "hardhat --config hardhat.config.cjs test",
+    "node:local": "hardhat --config hardhat.config.cjs node --port 7545",
+    "deploy:local": "hardhat --config hardhat.config.cjs run scripts/deploy.cjs --network localhost",
+    "deploy:sepolia": "hardhat --config hardhat.config.cjs run scripts/deploy.cjs --network sepolia"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^16.6.1",
     "ethers": "^6.17.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
+    "@nomicfoundation/hardhat-ethers": "^3.1.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "chai": "^4.5.0",
     "eslint": "^10.9.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
+    "hardhat": "^2.29.1",
     "vite": "^8.2.2"
   }
 }

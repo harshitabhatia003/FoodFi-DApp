@@ -1,287 +1,261 @@
-// ============================================
-// WEB3 CONTEXT - Global Blockchain State
-// ============================================
-// Provides blockchain state to entire React app via Context API
-// Usage: Wrap your App component with <Web3Provider>
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as blockchainService from "../../blockchain/blockchain.js";
+import { DEPLOYED_CHAIN_ID, DEPLOYMENT } from "../../config/contracts.js";
+import { Web3Context } from "./Web3Context.js";
 
-// Create context
-const Web3Context = createContext(null);
-
-// ============================================
-// WEB3 PROVIDER COMPONENT
-// ============================================
+function getMessage(error) {
+  return blockchainService.formatWalletError(error);
+}
 
 export function Web3Provider({ children }) {
-  // State
-  const [isConnected, setIsConnected] = useState(false);
   const [account, setAccount] = useState(null);
-  const [balance, setBalance] = useState('0');
-  const [foodBalance, setFoodBalance] = useState('0');
   const [chainId, setChainId] = useState(null);
-  const [isGanache, setIsGanache] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [networkName, setNetworkName] = useState("");
+  const [balance, setBalance] = useState(null);
+  const [foodBalance, setFoodBalance] = useState(null);
   const [participantStats, setParticipantStats] = useState(null);
+  const [orderCount, setOrderCount] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [transactionInProgress, setTransactionInProgress] = useState(false);
+  const [transaction, setTransaction] = useState(null);
+  const [error, setError] = useState(null);
 
-  // ============================================
-  // INITIALIZE ON MOUNT
-  // ============================================
+  const isConnected = Boolean(account);
+  const isCorrectNetwork = chainId === DEPLOYED_CHAIN_ID;
+  const isConfigured = Boolean(
+    DEPLOYMENT.contracts?.foodToken &&
+    DEPLOYMENT.contracts?.orders &&
+    DEPLOYMENT.contracts?.foodRewards &&
+    DEPLOYMENT.contracts?.vault &&
+    DEPLOYMENT.contracts?.liquidityPool &&
+    DEPLOYMENT.contracts?.ammLpToken &&
+    DEPLOYMENT.contracts?.farm &&
+    DEPLOYMENT.contracts?.router &&
+    DEPLOYMENT.contracts?.factory &&
+    DEPLOYMENT.contracts?.dexPair &&
+    DEPLOYMENT.contracts?.dexUsd &&
+    DEPLOYMENT.contracts?.dexBridge,
+  );
+  const isGanache = isCorrectNetwork;
 
-  useEffect(() => {
-    initializeBlockchain();
-    setupEventListeners();
-
-    return () => {
-      // Cleanup listeners
-    };
-  }, []);
-
-  // ============================================
-  // CHECK IF ALREADY CONNECTED
-  // ============================================
-
-  async function initializeBlockchain() {
+  const refreshBalances = useCallback(async (address = account, walletChainId = chainId) => {
+    if (!address) return;
     try {
-      const hasMetaMask = await blockchainService.detectMetaMask();
-      
-      if (hasMetaMask) {
-        const ethProvider = blockchainService.getMetaMaskProvider();
-        
-        // Check if already connected (cached in MetaMask)
-        const accounts = await ethProvider.request({ method: 'eth_accounts' });
-        
-        if (accounts && accounts.length > 0) {
-          // Already connected, do full reconnection
-          await handleConnectWallet();
-        }
+      if (walletChainId !== DEPLOYED_CHAIN_ID) {
+        setBalance(await blockchainService.getNativeBalance(address));
+        setFoodBalance(null);
+        setParticipantStats(null);
+        setOrderCount(null);
+        return;
       }
-    } catch (err) {
-      console.error('Initialization error:', err);
+      const snapshot = await blockchainService.getWalletSnapshot(address);
+      setBalance(snapshot.nativeBalance);
+      setFoodBalance(snapshot.foodBalance);
+      setParticipantStats(snapshot.participantStats);
+      setOrderCount(snapshot.orderCount);
+    } catch (refreshError) {
+      setError(getMessage(refreshError));
+      throw refreshError;
     }
-  }
+  }, [account, chainId]);
 
-  // ============================================
-  // SET UP EVENT LISTENERS
-  // ============================================
-
-  function setupEventListeners() {
-    blockchainService.registerEventListener('onAccountChanged', (newAccount) => {
-      setAccount(newAccount);
-      refreshBalances(newAccount);
-    });
-
-    blockchainService.registerEventListener('onNetworkChanged', (newChainId) => {
-      setChainId(newChainId);
-      checkGanacheNetwork(newChainId);
-    });
-
-    blockchainService.registerEventListener('onConnected', (connectedAccount) => {
-      setAccount(connectedAccount);
-      setIsConnected(true);
-    });
-
-    blockchainService.registerEventListener('onDisconnected', () => {
+  const applyWallet = useCallback((wallet) => {
+    if (!wallet) {
+      blockchainService.clearWallet();
       setAccount(null);
-      setIsConnected(false);
-      setBalance('0');
-      setFoodBalance('0');
+      setChainId(null);
+      setNetworkName("");
+      setBalance(null);
+      setFoodBalance(null);
+      setParticipantStats(null);
+      setOrderCount(null);
+      return;
+    }
+    setAccount(wallet.account);
+    setChainId(wallet.chainId);
+    setNetworkName(wallet.networkName);
+    setError(null);
+    void refreshBalances(wallet.account, wallet.chainId).catch((refreshError) => {
+      setError(`Wallet connected, but network data could not be loaded. ${getMessage(refreshError)}`);
     });
-  }
+  }, [refreshBalances]);
 
-  // ============================================
-  // CONNECT WALLET
-  // ============================================
-
-  async function handleConnectWallet() {
+  const connectWallet = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-
-      const connectedAccount = await blockchainService.connectWallet();
-      setAccount(connectedAccount);
-      setIsConnected(true);
-
-      // Get network info
-      const network = await blockchainService.getNetworkInfo();
-      setChainId(network.chainId);
-      checkGanacheNetwork(network.chainId);
-
-      // Refresh balances
-      await refreshBalances(connectedAccount);
-    } catch (err) {
-      setError(err.message);
-      console.error('Connection error:', err);
+      await applyWallet(await blockchainService.connectWallet());
+    } catch (connectError) {
+      setError(getMessage(connectError));
+      throw connectError;
     } finally {
       setLoading(false);
     }
-  }
+  }, [applyWallet]);
 
-  // ============================================
-  // CHECK GANACHE NETWORK
-  // ============================================
-
-  function checkGanacheNetwork(chainId) {
-    const isGanacheChain = chainId === 1337; // Ganache chain ID
-    setIsGanache(isGanacheChain);
-    
-    if (!isGanacheChain) {
-      setError(`Wrong network! Connected to chain ${chainId}, expected 1337 (Ganache)`);
-    }
-  }
-
-  // ============================================
-  // REFRESH BALANCES
-  // ============================================
-
-  async function refreshBalances(accountAddress) {
-    try {
-      // Get ETH balance
-      const ethBal = await blockchainService.getAccountBalance();
-      setBalance(ethBal);
-
-      // Get FOOD token balance
-      const foodBal = await blockchainService.getMyFOODBalance();
-      setFoodBalance(foodBal);
-
-      // Get FoodFi stats
-      const stats = await blockchainService.getMyStats();
-      setParticipantStats(stats);
-    } catch (err) {
-      console.error('Error refreshing balances:', err);
-    }
-  }
-
-  // ============================================
-  // RECORD FOOD SAVING
-  // ============================================
-
-  async function handleRecordFoodSaving(foodSavedKg) {
-    try {
-      setTransactionInProgress(true);
-      setError(null);
-
-      const receipt = await blockchainService.recordFoodSaving(account, foodSavedKg);
-      
-      // Refresh stats after transaction
-      await refreshBalances(account);
-      
-      return receipt;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setTransactionInProgress(false);
-    }
-  }
-
-  // ============================================
-  // GET FOOD TOKEN BALANCE
-  // ============================================
-
-  async function handleGetFOODBalance() {
-    try {
-      setError(null);
-      const bal = await blockchainService.getMyFOODBalance();
-      setFoodBalance(bal);
-      return bal;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }
-
-  // ============================================
-  // APPROVE FOOD TOKEN
-  // ============================================
-
-  async function handleApproveFOOD(amount) {
-    try {
-      setTransactionInProgress(true);
-      setError(null);
-
-      const receipt = await blockchainService.approveFOODToken(amount);
-      return receipt;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setTransactionInProgress(false);
-    }
-  }
-
-  // ============================================
-  // GET PARTICIPANT STATS
-  // ============================================
-
-  async function handleGetStats() {
-    try {
-      setError(null);
-      const stats = await blockchainService.getMyStats();
-      setParticipantStats(stats);
-      return stats;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }
-
-  // ============================================
-  // DISCONNECT WALLET
-  // ============================================
-
-  function handleDisconnectWallet() {
-    blockchainService.disconnectWallet();
-    setAccount(null);
-    setIsConnected(false);
-    setBalance('0');
-    setFoodBalance('0');
+  const switchNetwork = useCallback(async () => {
     setError(null);
-  }
+    try {
+      await applyWallet(await blockchainService.switchNetwork());
+    } catch (switchError) {
+      setError(getMessage(switchError));
+      throw switchError;
+    }
+  }, [applyWallet]);
 
-  // ============================================
-  // CONTEXT VALUE
-  // ============================================
+  const disconnectWallet = useCallback(() => {
+    blockchainService.clearWallet();
+    setAccount(null);
+    setChainId(null);
+    setNetworkName("");
+    setBalance(null);
+    setFoodBalance(null);
+    setParticipantStats(null);
+    setOrderCount(null);
+    setTransaction(null);
+    setError(null);
+  }, []);
 
-  const value = {
-    // State
+  useEffect(() => {
+    let active = true;
+    const ethereum = typeof window !== "undefined" ? window.ethereum : null;
+
+    const restore = async () => {
+      if (!ethereum) return;
+      try {
+        const wallet = await blockchainService.restoreWallet();
+        if (active && wallet) await applyWallet(wallet);
+      } catch (restoreError) {
+        if (active) setError(getMessage(restoreError));
+      }
+    };
+
+    const handleAccountsChanged = async (accounts) => {
+      if (!accounts?.length) {
+        disconnectWallet();
+        return;
+      }
+      try {
+        const wallet = await blockchainService.restoreWallet();
+        if (active && wallet) await applyWallet(wallet);
+      } catch (walletError) {
+        if (active) setError(getMessage(walletError));
+      }
+    };
+
+    const handleChainChanged = async (chain) => {
+      const nextChainId = Number(BigInt(chain));
+      setChainId(nextChainId);
+      try {
+        const wallet = await blockchainService.restoreWallet();
+        if (active && wallet) await applyWallet(wallet);
+      } catch (walletError) {
+        if (active) setError(getMessage(walletError));
+      }
+    };
+
+    void restore();
+    ethereum?.on?.("accountsChanged", handleAccountsChanged);
+    ethereum?.on?.("chainChanged", handleChainChanged);
+    return () => {
+      active = false;
+      ethereum?.removeListener?.("accountsChanged", handleAccountsChanged);
+      ethereum?.removeListener?.("chainChanged", handleChainChanged);
+    };
+  }, [applyWallet, disconnectWallet]);
+
+  const readContract = useCallback(
+    (name, method, args = []) => blockchainService.readContract(name, method, args),
+    [],
+  );
+
+  const writeContract = useCallback(async (name, method, args = []) => {
+    if (!account) throw new Error("Connect your wallet before continuing.");
+    if (chainId !== DEPLOYED_CHAIN_ID) throw new Error(`Switch MetaMask to chain ${DEPLOYED_CHAIN_ID}.`);
+    setTransactionInProgress(true);
+    setError(null);
+    setTransaction({ method, status: "awaiting-wallet", hash: null });
+    try {
+      const result = await blockchainService.sendContractTransaction(
+        name,
+        method,
+        args,
+        (hash) => setTransaction({ method, status: "pending", hash }),
+      );
+      setTransaction({
+        method,
+        status: "confirmed",
+        hash: result.hash,
+        blockNumber: result.blockNumber,
+      });
+      try {
+        await refreshBalances(account);
+      } catch (refreshError) {
+        setError(`Transaction confirmed, but balances could not be refreshed: ${getMessage(refreshError)}`);
+      }
+      return result;
+    } catch (transactionError) {
+      const message = getMessage(transactionError);
+      setTransaction((current) => ({
+        ...current,
+        method,
+        status: transactionError?.code === "ACTION_REJECTED" || transactionError?.code === 4001
+          ? "rejected"
+          : "failed",
+        error: message,
+      }));
+      setError(message);
+      throw transactionError;
+    } finally {
+      setTransactionInProgress(false);
+    }
+  }, [account, chainId, refreshBalances]);
+
+  const value = useMemo(() => ({
     isConnected,
+    isCorrectNetwork,
+    isConfigured,
+    isGanache,
     account,
+    chainId,
+    networkName,
     balance,
     foodBalance,
-    chainId,
-    isGanache,
-    loading,
-    error,
     participantStats,
+    orderCount,
+    loading,
     transactionInProgress,
-
-    // Functions
-    connectWallet: handleConnectWallet,
-    disconnectWallet: handleDisconnectWallet,
-    recordFoodSaving: handleRecordFoodSaving,
-    getFOODBalance: handleGetFOODBalance,
-    approveFOOD: handleApproveFOOD,
-    getStats: handleGetStats,
+    transaction,
+    error,
+    connectWallet,
+    switchNetwork,
+    disconnectWallet,
     refreshBalances,
-  };
+    readContract,
+    writeContract,
+  }), [
+    isConnected,
+    isCorrectNetwork,
+    isConfigured,
+    isGanache,
+    account,
+    chainId,
+    networkName,
+    balance,
+    foodBalance,
+    participantStats,
+    orderCount,
+    loading,
+    transactionInProgress,
+    transaction,
+    error,
+    connectWallet,
+    switchNetwork,
+    disconnectWallet,
+    refreshBalances,
+    readContract,
+    writeContract,
+  ]);
 
   return <Web3Context.Provider value={value}>{children}</Web3Context.Provider>;
 }
-
-// ============================================
-// CUSTOM HOOK - USE WEB3
-// ============================================
-
-export function useWeb3() {
-  const context = useContext(Web3Context);
-  if (!context) {
-    throw new Error('useWeb3 must be used within Web3Provider');
-  }
-  return context;
-}
-
-export default Web3Context;
