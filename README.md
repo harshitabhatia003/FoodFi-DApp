@@ -2,6 +2,12 @@
 
 FoodFi is a React/Vite Web3 demo for food orders, FOOD rewards, a token vault, liquidity, yield farming, and token swaps. Solidity sources for the six experiments are maintained in `contracts/active/Experiment1` through `Experiment6`; the original contract files under `contracts/contracts` are preserved as reference material and are not compiled by Hardhat.
 
+## UI preview
+
+
+
+The screenshot shows the app before a wallet is connected. Menu browsing and basket controls are available immediately; on-chain actions require an injected wallet connected to the chain where FoodFi is deployed.
+
 ## Features
 
 - Connect an injected EVM wallet, inspect balances and transactions, and switch to the configured chain.
@@ -51,14 +57,28 @@ Then start the frontend:
 npm run dev
 ```
 
-Open the Vite URL (normally `http://localhost:5173`) and connect a wallet configured for the local network:
+Open the Vite URL (normally `http://localhost:5173`) in the same browser profile that has MetaMask installed and unlocked. Add/select a local network with:
 
-- Network name: Hardhat Local
+- Network name: FoodFi Local (any name is fine)
 - RPC URL: `http://127.0.0.1:7545`
 - Chain ID: `1337` (`0x539`)
 - Currency: `ETH`
 
-Use only a development account/private key printed by the local Hardhat node, and never use it on a public network. Local node state is ephemeral; restart the node and redeploy after it is stopped. The deployment script writes addresses to `deployments/<chainId>.json` and `src/config/deployment.json`. It refuses to overwrite an existing live deployment unless `REDEPLOY=true` is explicitly set.
+Connect a Ganache-funded development account in MetaMask. If using the bundled Hardhat node, import one of its displayed development accounts instead. Never use development keys on a public network. Local chain state is ephemeral; after resetting/restarting the node, run `npm run deploy:local` again. The deployment script writes addresses to `deployments/<chainId>.json` and `src/config/deployment.json`. It refuses to overwrite an existing live deployment unless `REDEPLOY=true` is explicitly set.
+
+## UI flow
+
+The top navigation jumps to each section. On a fresh page, connect the wallet first; the wallet overview then shows the account, native balance, FOOD balance, rewards, and order count. Transactions open in the wallet for approval, and the app shows transaction status and reports confirmed events in **Activity**.
+
+1. **Order:** select **Add to order** on a menu card, adjust quantities in the basket, then choose **Checkout on-chain** and confirm the native-token payment. The menu and prices are sample data; this does not contact a restaurant.
+2. **Rewards:** the deployed rewards-contract owner enters a whole-number food-saving amount in kilograms and submits **Record activity**. Other accounts can view rewards but cannot record a verified entry.
+3. **Vault:** enter FOOD or share amounts to **Approve + deposit**, **Mint shares**, **Withdraw FOOD**, or **Redeem shares**. A deposit first requests a token approval, then submits the vault deposit.
+4. **Liquidity:** use the Experiment 4 FOOD / AMM-USD panel to add liquidity (approve both tokens, then add) or remove FFI-LP shares. This pool is separate from the FOOD / FUSD DEX.
+5. **Farming:** the panel stakes FOOD / FUSD DEX pair LP tokens, claims accrued FOOD rewards, or withdraws the full stake. The deployment account receives the initial demo LP position; use that account for the seeded local demo.
+6. **Swap:** choose input/output tokens, enter an amount, review the live quote, route, and minimum received, set slippage, then choose **Approve + swap** and confirm both wallet requests.
+7. **Activity:** review confirmed order, rewards, vault, liquidity, farm, and swap events read from the connected chain.
+
+On-chain buttons stay disabled until a wallet is connected, MetaMask is on chain `1337`, and contract addresses are configured. The rewards action is additionally limited to the rewards-contract owner; withdraw/claim actions may also be unavailable when there is no position. If the wallet reports an RPC error, verify Ganache is running at `http://127.0.0.1:7545`, MetaMask uses that same URL and chain ID, and the contracts were deployed to that Ganache instance.
 
 ## Deploy to Sepolia
 
