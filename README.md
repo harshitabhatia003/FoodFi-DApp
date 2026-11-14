@@ -25,6 +25,7 @@ The screenshot shows the app before a wallet is connected. Menu browsing and bas
 - Deposit and withdraw FOOD from an ERC-4626 vault.
 - Add/remove liquidity and swap tokens through the Experiment 6 DEX.
 - Stake and unstake DEX LP tokens in the yield farm.
+- View the validated Chainlink ETH/USD price, convert an entered ETH amount, and see order USD value on Sepolia (Experiment 7).
 
 The menu and its ETH prices are sample data, not a live restaurant catalog or quote. This project does not submit orders to a restaurant or provide delivery tracking.
 
@@ -85,9 +86,12 @@ The top navigation jumps to each section. On a fresh page, connect the wallet fi
 4. **Liquidity:** use the Experiment 4 FOOD / AMM-USD panel to add liquidity (approve both tokens, then add) or remove FFI-LP shares. This pool is separate from the FOOD / FUSD DEX.
 5. **Farming:** the panel stakes FOOD / FUSD DEX pair LP tokens, claims accrued FOOD rewards, or withdraws the full stake. The deployment account receives the initial demo LP position; use that account for the seeded local demo.
 6. **Swap:** choose input/output tokens, enter an amount, review the live quote, route, and minimum received, set slippage, then choose **Approve + swap** and confirm both wallet requests.
-7. **Activity:** review confirmed order, rewards, vault, liquidity, farm, and swap events read from the connected chain.
+7. **Chainlink ETH/USD:** connect MetaMask, use **Switch to Sepolia**, then select **Refresh Price**. The panel reads the deployed SafePriceConsumer, displays its on-chain price and decimals, and calls `valueOfOrder()` for the entered ETH amount (default `1`). It also shows the wallet, network, chain ID, and deployed contract/feed addresses. Return to Ganache using the wallet's network switch control before using existing FoodFi contracts.
+8. **Activity:** review confirmed order, rewards, vault, liquidity, farm, and swap events read from the connected chain.
 
 On-chain buttons stay disabled until a wallet is connected, MetaMask is on chain `1337`, and contract addresses are configured. The rewards action is additionally limited to the rewards-contract owner; withdraw/claim actions may also be unavailable when there is no position. If the wallet reports an RPC error, verify Ganache is running at `http://127.0.0.1:7545`, MetaMask uses that same URL and chain ID, and the contracts were deployed to that Ganache instance.
+
+The Experiment 7 price panel is an independent, read-only Sepolia integration. It uses the already deployed SafePriceConsumer at `0x102F852B62aBaeE6D2aC76c20132bb36727f8e2c` and calls `safePrice()`, `getDecimals()`, and `valueOfOrder()`; the contract's freshness checks reject stale oracle data. MetaMask must be on Sepolia (chain ID `11155111`) for these reads. The panel can request a switch to Sepolia, while the existing FoodFi contract actions continue to use Ganache (chain ID `1337`) as configured in `src/config/deployment.json`. No contracts are redeployed by this frontend integration.
 
 ## Deploy to Sepolia
 

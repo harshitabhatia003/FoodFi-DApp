@@ -1,46 +1,46 @@
 {
   "chainId": 1337,
   "networkName": "localhost",
-  "deployer": "0x143273E01FdFa120DC961424b4bd3dea8954A15A",
-  "deploymentBlock": 32,
+  "deployer": "0x8Dd9862cF5A3B0E71887545e7872fBd607ed2967",
+  "deploymentBlock": 34,
   "contracts": {
-    "foodToken": "0x735A8CD847078ef4370748EE6C00ee36F49e189e",
-    "foodRewards": "0xb2DEf691159dd58BE4B8990F5Eb7D5336b6f0cCC",
-    "orders": "0x9408280b07773D5F4dF553b77A84d7D7CAb44D31",
-    "vault": "0x998F16E95E1584a5b6A3c9C6cE0A903542Dc3D0A",
-    "ammUsd": "0xcB5A66c99f6fC6fbC2B46803a25d68Ae9b7CFEA0",
-    "ammLpToken": "0x1282796AF710Ed19Cb86e9691dB7F0f387b257c2",
-    "liquidityPool": "0x362FaA92160B96Bb1e2541798774F1a67aAFB94f",
-    "dexUsd": "0x8082512EcE7c683E7DBfE1F272091E13681EEFB4",
-    "factory": "0x4ce4F3A47cbcdEFDEeCB90879A965636aab5CEa0",
-    "router": "0x971fcAE00dC49E12A797B0030b0a280d0F952876",
-    "dexPair": "0x2b90B037eD263f0558c367dc83D42580E498Ef7D",
-    "foodBridgePair": "0x0897aBb71637a23597DBE6bd62fFA91CE1dAFA1f",
-    "bridgeUsdPair": "0x44b32552549938e3A7fcb2B213e964997CF006f9",
-    "dexBridge": "0xaF6c9577a2FCc7E6c772ED34dFc42cDFD3822c39",
-    "farm": "0xFfd7004870e6e7BF8A68CFBCD1eb1f467AA08644"
+    "foodToken": "0xB2B2A97Bc35dcC831390818a77d8a5aaB52EF12F",
+    "foodRewards": "0x0F9bE2C5aC1cCFe5d66A65D293aBE9E395792678",
+    "orders": "0x520a5D1F326d09e90F8F492aFc294EBD131af9b0",
+    "vault": "0xFBe9A888a97Ac8dDA123B516593656B6adB45BA8",
+    "ammUsd": "0x2C277CBB590CF3e65197d181a991c23622dbF46B",
+    "ammLpToken": "0x80A9A0c77426eAbCA25ef6D29048adc2BC584f9c",
+    "liquidityPool": "0x23B3574efFd452311f598ccDD92aF0DC7b668564",
+    "dexUsd": "0xAF715f2bBCe46Ab87A725F676f45c5Bd68217435",
+    "factory": "0xd8161Ae0f5c35aC9a373aCDD5Deab2163E343C76",
+    "router": "0x69dc78773F0b055E683ffbc45D504B676947E49C",
+    "dexPair": "0xE069EF695FF03d26b31C5194c428E2e55cD4cDa9",
+    "foodBridgePair": "0xBB19Aa4850ba3e431267b4CBdd0dCC747EbcE9ed",
+    "bridgeUsdPair": "0xFf8f6DAA476ED6Bc0E0Cf167C92CD7f6da234334",
+    "dexBridge": "0x991B5002f3291aEf89130267C44943E1808010ba",
+    "farm": "0xa3d40452a8c9baC0757d533642250F3266B516eC"
   },
   "tokens": [
     {
-      "address": "0x735A8CD847078ef4370748EE6C00ee36F49e189e",
+      "address": "0xB2B2A97Bc35dcC831390818a77d8a5aaB52EF12F",
       "name": "FoodFi Token",
       "symbol": "FOOD",
       "decimals": 18
     },
     {
-      "address": "0x8082512EcE7c683E7DBfE1F272091E13681EEFB4",
+      "address": "0xAF715f2bBCe46Ab87A725F676f45c5Bd68217435",
       "name": "FoodFi DEX USD",
       "symbol": "FUSD",
       "decimals": 18
     },
     {
-      "address": "0xaF6c9577a2FCc7E6c772ED34dFc42cDFD3822c39",
+      "address": "0x991B5002f3291aEf89130267C44943E1808010ba",
       "name": "FoodFi Bridge Token",
       "symbol": "FBRG",
       "decimals": 18
     },
     {
-      "address": "0xcB5A66c99f6fC6fbC2B46803a25d68Ae9b7CFEA0",
+      "address": "0x2C277CBB590CF3e65197d181a991c23622dbF46B",
       "name": "FoodFi AMM USD",
       "symbol": "AMM-USD",
       "decimals": 18

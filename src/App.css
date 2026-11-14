@@ -676,6 +676,199 @@
   font-size: 13px;
 }
 
+.price-feed-panel {
+  margin: 0 0 14px;
+  padding: 13px;
+  border: 1px solid #e3ebe0;
+  border-radius: 11px;
+  background: #f7faf4;
+}
+
+.price-feed-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price-feed-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.price-feed-heading > div > strong {
+  color: #25392a;
+  font-size: 12px;
+}
+
+.price-feed-values {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.price-feed-values > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price-feed-values span,
+.price-feed-status {
+  color: #839083;
+  font-size: 9px;
+}
+
+.price-feed-values strong {
+  color: #315d39;
+  font-size: 12px;
+}
+
+.price-feed-status {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.price-feed-error {
+  color: #9a4438;
+}
+
+.chainlink-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(270px, 0.8fr);
+  gap: 16px;
+}
+
+.chainlink-card,
+.chainlink-details {
+  padding: 23px;
+  border: 1px solid #e5ebe2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 9px 25px rgba(29, 55, 36, 0.035);
+}
+
+.chainlink-price-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.chainlink-price-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.chainlink-price {
+  color: #203a27;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -1.8px;
+}
+
+.chainlink-price-unit {
+  color: #839083;
+  font-size: 11px;
+}
+
+.chainlink-network-tag {
+  padding: 7px 10px;
+  border-radius: 20px;
+  background: #eff7e9;
+  color: #477941;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.chainlink-network-warning {
+  border-radius: 9px;
+  background: #fff7e8;
+  color: #80652f;
+}
+
+.chainlink-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin: 20px 0;
+}
+
+.chainlink-result-grid > div {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+  border-radius: 10px;
+  background: #f7faf4;
+}
+
+.chainlink-result-grid span,
+.chainlink-details > div > span {
+  color: #839083;
+  font-size: 9px;
+}
+
+.chainlink-result-grid strong {
+  color: #315d39;
+  font-size: 17px;
+}
+
+.chainlink-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.chainlink-status {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #f2f7ee;
+  color: #4c7044;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.chainlink-error {
+  color: #9a4438;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.chainlink-details {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.chainlink-details > div {
+  display: grid;
+  gap: 5px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf1e9;
+}
+
+.chainlink-details > div > strong {
+  color: #315d39;
+  font-size: 12px;
+}
+
+.chainlink-details code {
+  color: #405344;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.chainlink-details > p {
+  margin: 0;
+  color: #839083;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
 .field-hint {
   display: block;
   margin-top: 10px;
@@ -1401,7 +1594,8 @@
 
   .order-layout,
   .liquidity-layout,
-  .swap-layout {
+  .swap-layout,
+  .chainlink-dashboard {
     grid-template-columns: 1fr;
   }
 

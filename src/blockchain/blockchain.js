@@ -5,7 +5,7 @@ import { DEPLOYED_CHAIN_ID, DEPLOYMENT, GANACHE_RPC_URL } from "../config/contra
 let provider = null;
 let signer = null;
 
-function getEthereum() {
+export function getEthereum() {
   const injected = typeof window === "undefined" ? null : window.ethereum;
   const providers = injected?.providers?.length ? injected.providers : [injected];
   const ethereum = providers.find((candidate) => candidate?.isMetaMask)

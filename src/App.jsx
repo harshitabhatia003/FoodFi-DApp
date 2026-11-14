@@ -3,6 +3,12 @@ import { formatUnits, id, parseEther, parseUnits } from "ethers";
 import { useWeb3 } from "./components/Web3";
 import { WalletButton } from "./components/Web3";
 import { getContract, requireContractCode } from "./blockchain/blockchain.js";
+import { readSafePriceQuote, switchToSepolia } from "./blockchain/chainlink.js";
+import {
+  CHAINLINK_ETH_USD_FEED_ADDRESS,
+  CHAINLINK_SEPOLIA_CHAIN_ID,
+  SAFE_PRICE_CONSUMER_ADDRESS,
+} from "./config/chainlink.js";
 import { DEPLOYMENT, TOKENS } from "./config/contracts.js";
 import "./App.css";
 
@@ -39,6 +45,18 @@ function displayAmount(value, decimals = 18, digits = 4) {
 
 function errorText(error) {
   return error?.shortMessage || error?.reason || error?.message || "The request failed.";
+}
+
+function formatUsd(value, decimals) {
+  const amount = Number(formatUnits(value, decimals));
+  return Number.isFinite(amount)
+    ? new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)
+    : "—";
 }
 
 function SectionHeading({ eyebrow, title, description }) {
@@ -110,8 +128,22 @@ function App() {
   const [swapFrom, setSwapFrom] = useState(() => dexTokens[0]?.address || "");
   const [swapTo, setSwapTo] = useState(() => dexTokens[1]?.address || "");
   const [swapAmount, setSwapAmount] = useState("");
+  const [priceAmount, setPriceAmount] = useState("1");
   const [slippage, setSlippage] = useState("0.5");
   const [swapState, setSwapState] = useState({ key: "", quote: null, error: "", balance: null });
+  const [priceQuote, setPriceQuote] = useState({
+    price: null,
+    decimals: null,
+    orderValue: null,
+    basketValue: null,
+    checkedAt: null,
+    requestKey: null,
+    error: "",
+    loading: false,
+  });
+  const [priceRefreshVersion, setPriceRefreshVersion] = useState(0);
+  const [priceSwitching, setPriceSwitching] = useState(false);
+  const [priceSwitchError, setPriceSwitchError] = useState("");
   const quoteKey = [account, swapFrom, swapTo, swapAmount, refreshVersion].join(":");
   const swapQuote = swapState.key === quoteKey ? swapState.quote : null;
   const quoteError = swapState.key === quoteKey ? swapState.error : "";
@@ -122,9 +154,107 @@ function App() {
     () => cart.reduce((total, item) => total + parseEther(item.price) * BigInt(item.quantity), 0n),
     [cart],
   );
+  const priceAmountWei = useMemo(() => {
+    if (!priceAmount.trim()) return null;
+    try {
+      const amount = parseEther(priceAmount);
+      return amount < 0n ? null : amount;
+    } catch {
+      return null;
+    }
+  }, [priceAmount]);
   const isRewardOwner = Boolean(
     account && rewardOwner && account.toLowerCase() === rewardOwner.toLowerCase(),
   );
+  const isSepolia = chainId === CHAINLINK_SEPOLIA_CHAIN_ID;
+  const priceQueryKey = [account, chainId, priceAmountWei, cartTotal, priceRefreshVersion].join(":");
+  const hasCurrentPriceQuote = isConnected && isSepolia && priceQuote.requestKey === priceQueryKey;
+
+  useEffect(() => {
+    let active = true;
+    if (!isConnected || !isSepolia) return undefined;
+
+    let requestInProgress = false;
+    async function loadPrice() {
+      if (requestInProgress) return;
+      requestInProgress = true;
+      setPriceQuote((current) => ({
+        ...current,
+        price: null,
+        decimals: null,
+        orderValue: null,
+        basketValue: null,
+        checkedAt: null,
+        requestKey: priceQueryKey,
+        error: "",
+        loading: true,
+      }));
+      try {
+        const quote = await readSafePriceQuote(priceAmountWei, cartTotal);
+        if (active) {
+          setPriceQuote({
+            ...quote,
+            checkedAt: Date.now(),
+            requestKey: priceQueryKey,
+            error: "",
+            loading: false,
+          });
+        }
+      } catch (priceError) {
+        if (active) {
+          const message = errorText(priceError);
+          const errorDetails = [
+            priceError?.shortMessage,
+            priceError?.reason,
+            priceError?.message,
+          ].filter(Boolean).join(" ");
+          setPriceQuote((current) => ({
+            ...current,
+            price: null,
+            decimals: null,
+            orderValue: null,
+            basketValue: null,
+            checkedAt: null,
+            requestKey: priceQueryKey,
+            error: /stale price/i.test(errorDetails)
+              ? "The Chainlink feed is stale; wait for a fresh update, then retry."
+              : message,
+            loading: false,
+          }));
+        }
+      } finally {
+        requestInProgress = false;
+      }
+    }
+
+    void loadPrice();
+    const interval = window.setInterval(loadPrice, 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [account, cartTotal, isConnected, isSepolia, priceAmountWei, priceQueryKey]);
+
+  async function handleConnectForPriceFeed() {
+    setPriceSwitchError("");
+    try {
+      await connectWallet();
+    } catch (connectError) {
+      setPriceSwitchError(errorText(connectError));
+    }
+  }
+
+  async function handleSwitchToSepolia() {
+    setPriceSwitchError("");
+    setPriceSwitching(true);
+    try {
+      await switchToSepolia();
+    } catch (switchError) {
+      setPriceSwitchError(errorText(switchError));
+    } finally {
+      setPriceSwitching(false);
+    }
+  }
 
   useEffect(() => {
     if (!isConnected || !isCorrectNetwork || !isConfigured || !account) {
@@ -440,6 +570,7 @@ function App() {
         </a>
         <nav className="main-nav" aria-label="Main navigation">
           <a href="#order">Order</a>
+          <a href="#experiment-7">ETH/USD</a>
           <a href="#rewards">Rewards</a>
           <a href="#vault">Vault</a>
           <a href="#liquidity">Liquidity</a>
@@ -508,7 +639,7 @@ function App() {
               {isCorrectNetwork ? null : (
                 <div className="notice notice-warning">
                   <strong>Wrong network</strong>
-                  <span>Connected to {networkName || `chain ${chainId}`}. Switch MetaMask to chain {DEPLOYMENT.chainId} to use FoodFi contracts.</span>
+                  <span>Connected to {networkName || `chain ${chainId}`}. Existing FoodFi contract actions are configured for chain {DEPLOYMENT.chainId}; Experiment 7 price reads require Sepolia (chain {CHAINLINK_SEPOLIA_CHAIN_ID}).</span>
                 </div>
               )}
               {!isConfigured && (
@@ -565,10 +696,170 @@ function App() {
                 </div>
               )}
               <div className="cart-total"><span>Total</span><strong>{displayAmount(cartTotal)} ETH</strong></div>
+              <div className="price-feed-panel" aria-live="polite">
+                <div className="price-feed-heading">
+                  <div>
+                    <span className="eyebrow">Sepolia conversion</span>
+                    <strong>Order USD equivalent</strong>
+                  </div>
+                </div>
+                <div className="price-feed-values">
+                  <div>
+                    <span>Your order ({displayAmount(cartTotal)} ETH)</span>
+                    <strong>
+                      {hasCurrentPriceQuote && priceQuote.basketValue !== null && priceQuote.decimals !== null
+                        ? formatUsd(priceQuote.basketValue, priceQuote.decimals)
+                        : "—"}
+                    </strong>
+                  </div>
+                </div>
+                <p className={priceQuote.error ? "price-feed-status price-feed-error" : "price-feed-status"}>
+                  {!isConnected
+                    ? "Connect MetaMask to read the Sepolia price feed."
+                    : !isSepolia
+                      ? `This read-only feed requires Sepolia (chain ${CHAINLINK_SEPOLIA_CHAIN_ID}).`
+                      : hasCurrentPriceQuote && priceQuote.error
+                        ? priceQuote.error
+                        : !hasCurrentPriceQuote || priceQuote.loading
+                          ? "Validating the latest price on-chain..."
+                          : priceQuote.checkedAt
+                            ? `Validated at ${new Date(priceQuote.checkedAt).toLocaleTimeString()}`
+                            : "Waiting for a validated price."}
+                </p>
+              </div>
+              {isConnected && !isCorrectNetwork && (
+                <small className="field-hint">
+                  The Chainlink price read uses Sepolia; checkout and existing FoodFi contract actions require chain {DEPLOYMENT.chainId}.
+                </small>
+              )}
               <button className="button button-primary button-full" disabled={!cart.length || transactionInProgress || !isConnected || !isCorrectNetwork || !isConfigured} onClick={() => void runAction(placeFoodOrder, "Order confirmed on-chain.")}>
                 {transactionInProgress ? "Confirming..." : "Checkout on-chain"}
               </button>
               {!isConnected && <small className="field-hint">Connect your wallet to check out.</small>}
+            </aside>
+          </div>
+        </section>
+
+        <section className="content-section section-wrap" id="experiment-7">
+          <SectionHeading
+            eyebrow="07 / Chainlink Price Feed"
+            title="Live ETH/USD from Sepolia"
+            description="Read the validated price directly from FoodFi's deployed SafePriceConsumer. Enter an ETH amount to get its on-chain USD value."
+          />
+          <div className="chainlink-dashboard">
+            <div className="chainlink-card">
+              <div className="chainlink-price-header">
+                <div>
+                  <span className="eyebrow">Current validated price</span>
+                  <strong className="chainlink-price">
+                    {hasCurrentPriceQuote && priceQuote.price !== null && priceQuote.decimals !== null
+                      ? formatUsd(priceQuote.price, priceQuote.decimals)
+                      : "—"}
+                  </strong>
+                  <span className="chainlink-price-unit">per ETH</span>
+                </div>
+                <span className={isSepolia ? "chainlink-network-tag" : "chainlink-network-tag chainlink-network-warning"}>
+                  {isSepolia ? "Sepolia" : "Sepolia required"}
+                </span>
+              </div>
+
+              <div className="chainlink-result-grid">
+                <div>
+                  <span>Feed decimals</span>
+                  <strong>{hasCurrentPriceQuote && priceQuote.decimals !== null ? priceQuote.decimals : "—"}</strong>
+                </div>
+                <div>
+                  <span>{priceAmount || "0"} ETH in USD</span>
+                  <strong>
+                    {hasCurrentPriceQuote && priceQuote.orderValue !== null && priceQuote.decimals !== null
+                      ? formatUsd(priceQuote.orderValue, priceQuote.decimals)
+                      : "—"}
+                  </strong>
+                </div>
+              </div>
+
+              <Field
+                label="ETH amount to convert"
+                value={priceAmount}
+                onChange={setPriceAmount}
+                min="0"
+                step="any"
+                placeholder="1"
+              />
+              {priceAmountWei === null && (
+                <p className="chainlink-error" role="alert">Enter a valid non-negative ETH amount, such as 1 or 0.5.</p>
+              )}
+
+              <div className="chainlink-actions">
+                {!isConnected && (
+                  <button
+                    className="button button-outline"
+                    disabled={loading}
+                    onClick={() => void handleConnectForPriceFeed()}
+                  >
+                    {loading ? "Connecting..." : "Connect MetaMask"}
+                  </button>
+                )}
+                {isConnected && !isSepolia && (
+                  <button
+                    className="button button-outline"
+                    disabled={priceSwitching}
+                    onClick={() => void handleSwitchToSepolia()}
+                  >
+                    {priceSwitching ? "Switching..." : "Switch to Sepolia"}
+                  </button>
+                )}
+                <button
+                  className="button button-primary"
+                  disabled={!isConnected || !isSepolia || priceQuote.loading}
+                  onClick={() => setPriceRefreshVersion((version) => version + 1)}
+                >
+                  {priceQuote.loading ? "Refreshing..." : "Refresh Price"}
+                </button>
+              </div>
+
+              <p
+                className={`chainlink-status${!isConnected || !isSepolia ? " chainlink-network-warning" : ""}${priceQuote.error ? " chainlink-error" : ""}`}
+                role={priceQuote.error ? "alert" : "status"}
+              >
+                {!isConnected
+                  ? "Connect MetaMask to read the Sepolia contract."
+                  : !isSepolia
+                    ? `Wrong network: switch MetaMask to Sepolia (chain ${CHAINLINK_SEPOLIA_CHAIN_ID}) to enable Experiment 7.`
+                    : hasCurrentPriceQuote && priceQuote.error
+                      ? priceQuote.error
+                      : !hasCurrentPriceQuote || priceQuote.loading
+                        ? "Loading and validating the on-chain price..."
+                        : priceQuote.checkedAt
+                          ? `Successfully validated on-chain at ${new Date(priceQuote.checkedAt).toLocaleTimeString()}.`
+                          : "Waiting for a price read."}
+              </p>
+              {priceSwitchError && <p className="chainlink-error" role="alert">{priceSwitchError}</p>}
+            </div>
+
+            <aside className="chainlink-details">
+              <span className="eyebrow">Connection details</span>
+              <div>
+                <span>Wallet address</span>
+                <code>{account || "Not connected"}</code>
+              </div>
+              <div>
+                <span>Network</span>
+                <strong>{isConnected ? (networkName || "Unknown") : "Not connected"}</strong>
+              </div>
+              <div>
+                <span>Chain ID</span>
+                <strong>{chainId ?? "—"}</strong>
+              </div>
+              <div>
+                <span>SafePriceConsumer</span>
+                <code>{SAFE_PRICE_CONSUMER_ADDRESS}</code>
+              </div>
+              <div>
+                <span>ETH/USD feed</span>
+                <code>{CHAINLINK_ETH_USD_FEED_ADDRESS}</code>
+              </div>
+              <p>Experiment 7 is read-only on Sepolia. FoodFi's existing contracts and checkout remain on the configured Ganache network.</p>
             </aside>
           </div>
         </section>
@@ -691,7 +982,7 @@ function App() {
         </section>
 
         <section className="content-section section-wrap" id="activity">
-          <SectionHeading eyebrow="07 / Activity" title="Your on-chain activity" description="Events are queried from the deployed contracts. Nothing is fabricated or stored as a successful transaction before confirmation." />
+          <SectionHeading eyebrow="08 / Activity" title="Your on-chain activity" description="Events are queried from the deployed contracts. Nothing is fabricated or stored as a successful transaction before confirmation." />
           {moduleError && <div className="notice notice-error"><strong>Could not load contract activity</strong><span>{moduleError}</span></div>}
           <div className="activity-list">
             {history.length === 0 ? (
